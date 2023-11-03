@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+    <div class="container-fluid">
+        <!--        <div>
+                    <label for="fromdate">From Date:</label>
+                    <input type="date" id="fromdate" name="fromdate">
+                    <label for="todate">To Date:</label>
+                    <input type="date" id="todate" name="todate">
+                    <button id="filterBtn">Search</button>
+                </div>-->
+        <div>
+            <label for="customerId">CustomerId</label>
+            <input type="text" id="customerid" name="customerid" />
+            <button id="filterBtn">Search</button>
+        </div>
+        <div id="deleteMessage"></div>
+        <table class="table table-sm table-striped table-bordered m-2">
+            <thead>
+                <tr>
+                    <th>OrderId</th>
+                    <th>CustomerId</th>
+                    <th>CustomerName</th>
+                    <th>EmpId</th>
+                    <th>EmpName</th>
+                    <th>DepartmentName</th>
+                    <th>OrderDate</th>
+                    <th>Freight</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            ShowAll();
+
+            /*            $("#filterBtn").click(function () {
+                            var fromDate = $("#fromdate").val();
+                            var toDate = $("#todate").val();
+                            FilterByDate(fromDate, toDate);
+                        });*/
+
+            $("#filterBtn").click(function () {
+                var customerId = $("#customerid").val();
+                FilterByCustomerId(customerId)
+            });
+
+            function ShowAll() {
+                $("table tbody").html("");
+                $.ajax({
+                    url: "http://localhost:5231/api/Order/GetAllOrder",
+                    type: "get",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (result, status, xhr) {
+                        PopulateTable(result);
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr);
+                    }
+                });
+            }
+
+            /*            function FilterByDate(fromDate, toDate) {
+                            if (!fromDate && !toDate) {
+                                ShowAll();
+                                return;
+                            }
+
+                            $("table tbody").html("");
+                            $.ajax({
+                                url: "http://localhost:5231/api/Order/GetOrderByDate/" + fromDate + "/" + toDate,
+                                type: "get",
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                success: function (result, status, xhr) {
+                                    PopulateTable(result);
+                                },
+                                error: function (xhr, status, error) {
+                                    console.log(xhr);
+                                }
+                            });
+                        }*/
+
+            function FilterByCustomerId(customerId) {
+                if (!customerId) {
+                    ShowAll();
+                    return;
+                }
+                $("table tbody").html("");
+                $.ajax({
+                    url: "http://localhost:5231/api/Order/GetAllOrderByCustomer/" + customerId,
+                    type: "get",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (result, status, xhr) {
+                        PopulateTable(result);
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr);
+                    }
+                });
+            }
+
+            function DeleteCustomer(customerId) {
+                $.ajax({
+                    url: "http://localhost:5231/api/Customer/Delete/" + customerId,
+                    type: "post",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result, status, xhr) {
+                        var customerDeleted = result.CustomerDeleted;
+                        var orderDeleted = result.OrderDeleted;
+                        var orderDetailDeleted = result.OrderDetailDeleted;
+
+                        var message = "Customers deleted: " + customerDeleted + "<br>"
+                            + "Orders deleted: " + orderDeleted + "<br>"
+                            + "Order details deleted: " + orderDetailDeleted;
+
+                        $("#deleteMessage").html(message);
+                        ShowAll();
+                    },
+                    error: function (xhr, status, error) {
+
+                        console.log(xhr);
+                    }
+                });
+            }
+
+            function PopulateTable(data) {
+                $.each(data, function (index, value) {
+                    var row = $("<tr>");
+                    row.append($("<td>").html(value["orderId"]));
+                    row.append($("<td>").html(value["customerId"]));
+                    row.append($("<td>").html(value["customerName"]));
+                    row.append($("<td>").html(value["employeeId"]));
+                    row.append($("<td>").html(value["employeeName"]));
+                    row.append($("<td>").html(value["departmentName"]));
+                    row.append($("<td>").html(value["orderDate"]));
+                    row.append($("<td>").html(value["freight"]));
+
+                    var deleteButton = $("<button>").text("Delete");
+                    deleteButton.click(function () {
+                        var customerId = value["customerId"];
+                        DeleteCustomer(customerId);
+                    });
+
+                    var actionCell = $("<td>").append(deleteButton);
+                    row.append(actionCell);
+
+                    $("tbody").append(row);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+    <div class="container-fluid">
+        <div>
+            <label for="fromdate">Nation:</label>
+            <input type="text" id="nation" name="nation">
+            <label for="todate">Gender:</label>
+            <input type="text" id="gender" name="gender">
+            <button id="filterBtn">Filter</button>
+        </div>
+        <table style="border:1px">
+            <thead>
+                <tr>
+                    <th>DirectorId</th>
+                    <th>Fullname</th>
+                    <th>Gender</th>
+                    <th>Dob</th>
+                    <th>Description</th>
+                    <th>Nationality</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#filterBtn").click(function () {
+                var nation = $("#nation").val();
+                var gender = $("#gender").val();
+                Filter(nation, gender);
+            });
+
+            function Filter(nation, gender) {
+                $("table tbody").html("");
+                $.ajax({
+                    url: "http://localhost:5000/api/Director/GetDirectors/" + nation + "/" + gender,
+                    type: "get",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (result, status, xhr) {
+                        PopulateTable(result);
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr);
+                    }
+                });
+            }
+
+            function PopulateTable(data) {
+                $.each(data, function (index, value) {
+                    $("tbody").append($("<tr>"));
+                    appendElement = $("tbody tr").last();
+                    appendElement.append($("<td>").html(value["id"]));
+                    appendElement.append($("<td>").html(value["fullName"]));
+                    appendElement.append($("<td>").html(value["gender"]));
+                    appendElement.append($("<td>").html(value["dobString"]));
+                    appendElement.append($("<td>").html(value["description"]));
+                    appendElement.append($("<td>").html(value["nationality"]));
+                });
+            }
+        });
+    </script>
+</body>
+</html>
